@@ -62,7 +62,7 @@ jobs:
 
       - name: Atomically publish frozen refs and exact release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BOOTSTRAP_PAT }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
