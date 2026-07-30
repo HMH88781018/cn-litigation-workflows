@@ -1,3 +1,4 @@
+# Trigger fresh run after BOOTSTRAP_PAT update
 name: One-time bootstrap release
 
 on:
