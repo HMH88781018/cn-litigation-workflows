@@ -1,3 +1,4 @@
+# Fresh validation after BOOTSTRAP_PAT regeneration
 name: BOOTSTRAP_PAT safety validation
 
 on:
