@@ -1,136 +1,61 @@
-# Trigger fresh run after BOOTSTRAP_PAT update
-name: One-time bootstrap release
+name: BOOTSTRAP_PAT safety validation
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
-  group: one-time-bootstrap-v0.1.0
+  group: bootstrap-pat-safety-validation
   cancel-in-progress: false
 
 jobs:
-  publish:
+  validate-secret:
     if: github.repository == 'HMH88781018/cn-litigation-workflows'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
-      - name: Check out bootstrap payload
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Restore and verify frozen Git history
-        shell: bash
-        run: |
-          set -euo pipefail
-          base64 --decode release.bundle.b64 > /tmp/cn-litigation-workflows.bundle
-          echo "3cd5a19d7463c3c5d533c4ca79fecd01a03c6b4e248da2b9f83a1b61cbe26bd3  /tmp/cn-litigation-workflows.bundle" | sha256sum -c -
-          git bundle verify /tmp/cn-litigation-workflows.bundle
-          git clone -b main /tmp/cn-litigation-workflows.bundle /tmp/frozen-release
-          cd /tmp/frozen-release
-          test "$(git rev-parse HEAD)" = "47c0533cfd4f91b177debd243e814d8f307f0213"
-          test "$(git rev-parse refs/tags/v0.1.0)" = "36085424aa134e5df9a527e053363641bb172ec6"
-          test "$(git rev-parse refs/tags/v0.1.0^{})" = "47c0533cfd4f91b177debd243e814d8f307f0213"
-          test "$(git cat-file -t refs/tags/v0.1.0)" = "tag"
-          test "$(git rev-list --all --count)" = "1"
-          test "$(git rev-parse 'refs/heads/main^{tree}')" = "1239fde9652252196d15be533a6a0003622137e2"
-          git fsck --full --strict
-
-      - name: Validate, test, and evaluate
-        working-directory: /tmp/frozen-release
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/validate_project.py .
-          python3 -m unittest discover -s tests -v
-          python3 scripts/run_evals.py
-
-      - name: Build and verify deterministic release assets
-        working-directory: /tmp/frozen-release
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/package_plugin.py --output dist/cn-litigation-workflows-v0.1.0.zip
-          echo "932a12d111ad5e063e75ce4b99bf338467c7fa52a5ee568963e05095437fb4f4  dist/cn-litigation-workflows-v0.1.0.zip" | sha256sum -c -
-          test "$(sha256sum dist/cn-litigation-workflows-v0.1.0.zip.sha256 | awk '{print $1}')" = "683b0281d98eb8582780d48218d974c7c98e0686805b116ab24eae5a826ef09a"
-          unzip -t dist/cn-litigation-workflows-v0.1.0.zip
-
-      - name: Atomically publish frozen refs and exact release
+      - name: Safely validate BOOTSTRAP_PAT
         env:
           GH_TOKEN: ${{ secrets.BOOTSTRAP_PAT }}
-          GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          cd /tmp/frozen-release
-          gh auth setup-git
-          remote="https://github.com/${GITHUB_REPOSITORY}.git"
-          expected_commit="47c0533cfd4f91b177debd243e814d8f307f0213"
-          expected_tag_object="36085424aa134e5df9a527e053363641bb172ec6"
-          expected_zip_sha="932a12d111ad5e063e75ce4b99bf338467c7fa52a5ee568963e05095437fb4f4"
-          expected_checksum_sha="683b0281d98eb8582780d48218d974c7c98e0686805b116ab24eae5a826ef09a"
-          remote_main="$(git ls-remote "${remote}" refs/heads/main | awk '{print $1}')"
-          remote_tag="$(git ls-remote "${remote}" refs/tags/v0.1.0 | awk '{print $1}')"
-          if [ "${remote_main}" = "${GITHUB_SHA}" ] && [ -z "${remote_tag}" ]; then
-            if gh release view v0.1.0 >/dev/null 2>&1; then
-              echo "Refusing inconsistent bootstrap state with a pre-existing release" >&2
-              exit 1
-            fi
-            git push --atomic --force "${remote}" \
-              refs/heads/main:refs/heads/main \
-              refs/tags/v0.1.0:refs/tags/v0.1.0
-          elif [ "${remote_main}" = "${expected_commit}" ] && [ "${remote_tag}" = "${expected_tag_object}" ]; then
-            echo "Frozen refs already published; repairing or verifying the release."
-          else
-            echo "Unexpected remote ref state; refusing to overwrite." >&2
+          unset GH_DEBUG DEBUG || true
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::BOOTSTRAP_PAT is empty or unavailable."
             exit 1
           fi
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)" = "47c0533cfd4f91b177debd243e814d8f307f0213"
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v0.1.0" --jq .object.sha)" = "36085424aa134e5df9a527e053363641bb172ec6"
-          mapfile -t remote_refs < <(git ls-remote --refs "${remote}" | awk '{print $2}' | sort)
-          test "${#remote_refs[@]}" = "2"
-          test "${remote_refs[0]}" = "refs/heads/main"
-          test "${remote_refs[1]}" = "refs/tags/v0.1.0"
-          printf '%s\n' \
-            'Initial public release of CN Litigation Workflows.' \
-            '' \
-            'Validation:' \
-            '- Project validation passed' \
-            '- 33 unit tests passed' \
-            '- 10 synthetic evaluations passed' \
-            '' \
-            'Release asset SHA-256:' \
-            '`932a12d111ad5e063e75ce4b99bf338467c7fa52a5ee568963e05095437fb4f4`' \
-            > /tmp/release-notes.md
-          if gh release view v0.1.0 >/dev/null 2>&1; then
-            gh release upload v0.1.0 \
-              dist/cn-litigation-workflows-v0.1.0.zip \
-              dist/cn-litigation-workflows-v0.1.0.zip.sha256 \
-              --clobber
-            gh release edit v0.1.0 \
-              --title "CN Litigation Workflows v0.1.0" \
-              --notes-file /tmp/release-notes.md \
-              --draft=false \
-              --prerelease=false
-          else
-            gh release create v0.1.0 \
-              dist/cn-litigation-workflows-v0.1.0.zip \
-              dist/cn-litigation-workflows-v0.1.0.zip.sha256 \
-              --verify-tag \
-              --title "CN Litigation Workflows v0.1.0" \
-              --notes-file /tmp/release-notes.md
+
+          if [[ "${GH_TOKEN}" == *$'\n'* || "${GH_TOKEN}" == *$'\r'* ]]; then
+            echo "::error::BOOTSTRAP_PAT contains a line break."
+            exit 1
           fi
-          test "$(gh release view v0.1.0 --json tagName,name,isDraft,isPrerelease --jq '[.tagName, .name, .isDraft, .isPrerelease] | @tsv')" = $'v0.1.0\tCN Litigation Workflows v0.1.0\tfalse\tfalse'
-          test "$(gh release view v0.1.0 --json body --jq .body)" = "$(cat /tmp/release-notes.md)"
-          test "$(gh release view v0.1.0 --json assets --jq '.assets | length')" = "2"
-          test "$(gh release view v0.1.0 --json assets --jq '.assets[].name' | sort)" = $'cn-litigation-workflows-v0.1.0.zip\ncn-litigation-workflows-v0.1.0.zip.sha256'
-          mkdir /tmp/release-verification
-          gh release download v0.1.0 --dir /tmp/release-verification
-          test "$(sha256sum /tmp/release-verification/cn-litigation-workflows-v0.1.0.zip | awk '{print $1}')" = "${expected_zip_sha}"
-          test "$(sha256sum /tmp/release-verification/cn-litigation-workflows-v0.1.0.zip.sha256 | awk '{print $1}')" = "${expected_checksum_sha}"
+
+          if [[ "${GH_TOKEN}" =~ [[:space:]] ]]; then
+            echo "::error::BOOTSTRAP_PAT contains whitespace."
+            exit 1
+          fi
+
+          if [[ "${GH_TOKEN}" != github_pat_* ]]; then
+            echo "::error::BOOTSTRAP_PAT has an invalid prefix."
+            exit 1
+          fi
+
+          if ! authenticated_login="$(
+            gh api --method GET user --jq '.login' 2>/dev/null
+          )"; then
+            echo "::error::GET /user rejected BOOTSTRAP_PAT."
+            exit 1
+          fi
+
+          if [[ "${authenticated_login,,}" != "hmh88781018" ]]; then
+            echo "::error::BOOTSTRAP_PAT authenticated as an unexpected account."
+            exit 1
+          fi
+
+          echo "BOOTSTRAP_PAT validation passed for HMH88781018."
+          echo "Publishing is intentionally disabled."
