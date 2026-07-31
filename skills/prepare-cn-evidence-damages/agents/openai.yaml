@@ -1,0 +1,6 @@
+interface:
+  display_name: "证据清单与交通事故赔偿"
+  short_description: "制作证据清单、证据材料目录和交通事故赔偿计算表并完成闭环复核"
+  default_prompt: "使用 $prepare-cn-evidence-damages 制作或复核证据清单、证据材料目录及道路交通事故赔偿计算表，先核对法院母版、法源、页码与金额闭合。"
+policy:
+  allow_implicit_invocation: true

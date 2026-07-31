@@ -1,0 +1,42 @@
+{
+  "name": "cn-litigation-workflows",
+  "version": "0.1.1",
+  "description": "Auditable Chinese litigation workflows for element-based complaints, evidence bundles, and traffic-accident damages.",
+  "author": {
+    "name": "Huang Minghuan",
+    "url": "https://github.com/HMH88781018"
+  },
+  "homepage": "https://github.com/HMH88781018/cn-litigation-workflows",
+  "repository": "https://github.com/HMH88781018/cn-litigation-workflows",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agent-skills",
+    "china-law",
+    "codex",
+    "evidence",
+    "legal-tech",
+    "litigation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "中国诉讼工作流",
+    "shortDescription": "可审计的中国诉状、证据与交通事故赔偿工作流",
+    "longDescription": "面向中国大陆诉讼实务的专业辅助，将要素式起诉状、证据清单与目录、证据成册及交通事故赔偿计算转化为可追溯、可复算、可测试的阶段门禁。缺少现行法源、关键事实、最终页码、人工法律判断或跨文书一致性时，输出保持 DRAFT 并列明阻断项。插件不包含 MCP、远程服务、遥测、账号系统或真实案件数据。仅供具备相应资质的法律专业人员使用，或在其实际参与和人工复核下使用；不替代个案法律意见，不自动作出高风险法律决定。",
+    "developerName": "Huang Minghuan",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "websiteURL": "https://github.com/HMH88781018/cn-litigation-workflows",
+    "privacyPolicyURL": "https://github.com/HMH88781018/cn-litigation-workflows/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/HMH88781018/cn-litigation-workflows/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "按门禁复核这份要素式起诉状，列出阻断正式交付的问题。",
+      "根据匿名化材料制作证据清单、证据目录和页码映射。",
+      "复核交通事故赔偿表的法源、公式、保险分层与金额闭合。"
+    ],
+    "brandColor": "#7A1F2B",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/logo.png"
+  }
+}

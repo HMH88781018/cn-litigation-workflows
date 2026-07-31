@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Verify tag and manifest version
+        shell: bash
+        run: |
+          VERSION="$(python -c 'import json; print(json.load(open(".codex-plugin/plugin.json"))["version"])')"
+          test "v${VERSION}" = "${GITHUB_REF_NAME}"
+
+      - name: Validate and test
+        run: |
+          python scripts/validate_project.py .
+          python -m unittest discover -s tests -v
+          python scripts/run_evals.py
+
+      - name: Build deterministic artifact
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/package_plugin.py --output "dist/cn-litigation-workflows-${RELEASE_TAG}.zip"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "dist/cn-litigation-workflows-${GITHUB_REF_NAME}.zip" \
+            "dist/cn-litigation-workflows-${GITHUB_REF_NAME}.zip.sha256" \
+            --verify-tag \
+            --generate-notes \
+            --title "CN Litigation Workflows ${GITHUB_REF_NAME}"

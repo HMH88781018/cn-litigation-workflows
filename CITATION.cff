@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this project, cite the software release and version."
+title: "CN Litigation Workflows"
+type: software
+authors:
+  - family-names: "Huang"
+    given-names: "Minghuan"
+repository-code: "https://github.com/HMH88781018/cn-litigation-workflows"
+url: "https://github.com/HMH88781018/cn-litigation-workflows"
+license: "Apache-2.0"
+version: "0.1.1"
+date-released: "2026-07-30"

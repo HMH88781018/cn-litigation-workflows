@@ -1,0 +1,47 @@
+name: Legal-source update
+description: Propose a dated update backed by an official primary source.
+title: "[Source] "
+labels:
+  - legal-source
+body:
+  - type: input
+    id: issuer
+    attributes:
+      label: Official issuer
+      placeholder: 最高人民法院
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Official title
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Official HTTPS URL
+    validations:
+      required: true
+  - type: input
+    id: dates
+    attributes:
+      label: Promulgation, effective, and verification dates
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Exact workflow impact
+      description: Identify the current rule, proposed rule, affected tests, and transition issue.
+    validations:
+      required: true
+  - type: checkboxes
+    id: limits
+    attributes:
+      label: Review acknowledgements
+      options:
+        - label: This proposal does not treat an automated check as legal approval.
+          required: true
+        - label: I understand that source updates are never auto-merged.
+          required: true

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cn-litigation-workflows"
+version = "0.1.1"
+description = "Validation and release tools for auditable Chinese litigation agent Skills."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Huang Minghuan" }
+]
+keywords = ["agent-skills", "china-law", "codex", "legal-tech", "litigation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Software Development :: Quality Assurance"
+]
+
+[project.urls]
+Homepage = "https://github.com/HMH88781018/cn-litigation-workflows"
+Repository = "https://github.com/HMH88781018/cn-litigation-workflows"
+Issues = "https://github.com/HMH88781018/cn-litigation-workflows/issues"
+
+[project.scripts]
+cnlw-validate = "cn_litigation_workflows.cli:validate_main"
+cnlw-package = "cn_litigation_workflows.cli:package_main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

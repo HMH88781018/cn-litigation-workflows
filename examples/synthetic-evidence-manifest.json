@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "case_id": "SYN-2026-001",
+  "status": "DRAFT",
+  "pagination_policy": {
+    "cover_counted": false,
+    "directory_counted": false,
+    "body_starts_at": 1
+  },
+  "evidence": [
+    {
+      "id": "E-001",
+      "name": "匿名化事故认定材料",
+      "formed_by": "示例机关",
+      "formed_on": "2026-01-10",
+      "fact_ids": ["FACT-001"],
+      "claim_ids": ["CLM-001"],
+      "proof_purpose": "证明示例事故的时间、地点、参与车辆及记录的责任情况",
+      "page_start": 1,
+      "page_end": 2,
+      "original_status": "SYNTHETIC"
+    },
+    {
+      "id": "E-002",
+      "name": "匿名化医疗费用明细",
+      "formed_by": "示例医疗机构",
+      "formed_on": "2026-01-20",
+      "fact_ids": ["FACT-002"],
+      "claim_ids": ["CLM-002"],
+      "proof_purpose": "证明示例治疗项目、期间及可复核费用",
+      "page_start": 3,
+      "page_end": 5,
+      "original_status": "SYNTHETIC"
+    }
+  ]
+}

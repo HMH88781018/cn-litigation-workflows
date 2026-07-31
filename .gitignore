@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.idea/
+.vscode/
+.coverage
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+outputs/
+*.egg-info/
+*.tmp
+*.bak
+*.log
+*.docx.audit.json

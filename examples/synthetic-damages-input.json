@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "case_id": "SYN-2026-001",
+  "status": "DRAFT",
+  "rights_holder_id": "PTY-001",
+  "facts": {
+    "accident_date": "2026-01-10",
+    "jurisdiction": "某省某市",
+    "injury_mode": true
+  },
+  "parameters": [
+    {
+      "id": "SRC-STAT-001",
+      "name": "适用年度城镇居民人均可支配收入",
+      "value": null,
+      "unit": "元/年",
+      "official_url": null,
+      "verified_on": null,
+      "status": "P"
+    }
+  ],
+  "manual_decisions": [
+    {
+      "id": "DMG-COEF-001",
+      "name": "最终伤残赔偿系数",
+      "value": null,
+      "source_evidence_id": null,
+      "confirmed_by_qualified_reviewer": false,
+      "status": "BLOCK"
+    }
+  ],
+  "release_blockers": [
+    "缺少适用统计参数及官方来源",
+    "缺少鉴定意见和人工确认的最终伤残赔偿系数"
+  ]
+}

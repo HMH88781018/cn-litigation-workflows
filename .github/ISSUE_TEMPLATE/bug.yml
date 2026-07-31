@@ -1,0 +1,49 @@
+name: Workflow bug
+description: Report reproducible behavior using synthetic or irreversibly redacted data.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload client names, identity numbers, contact details, medical records,
+        evidence, privileged material, or other confidential matter data.
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Affected Skill
+      options:
+        - draft-cn-element-complaints
+        - prepare-cn-evidence-damages
+        - validator or release tooling
+        - routing between Skills
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Synthetic reproduction
+      description: Provide the smallest synthetic or irreversibly redacted input and exact steps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and release state
+      description: Include whether the output was DRAFT, REVIEW, or RELEASE.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I have not included confidential or personally identifying matter data.
+          required: true

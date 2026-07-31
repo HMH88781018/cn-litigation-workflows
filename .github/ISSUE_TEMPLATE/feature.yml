@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a bounded, testable addition to the public workflow.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Public workflow problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and Skill boundary
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Synthetic acceptance case
+      description: Describe an input, expected result, and failure mode without real matter data.
+    validations:
+      required: true

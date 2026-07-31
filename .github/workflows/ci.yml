@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.12"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile public Python sources
+        run: python -m compileall -q src scripts skills
+
+      - name: Validate manifests, sources, privacy, and Office assets
+        run: python scripts/validate_project.py .
+
+      - name: Run deterministic tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate synthetic eval cases
+        run: python scripts/run_evals.py
+
+      - name: Build bounded plugin archive
+        run: python scripts/package_plugin.py --output dist/cn-litigation-workflows.zip
+
+      - name: Upload release candidate
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cn-litigation-workflows-plugin
+          path: |
+            dist/cn-litigation-workflows.zip
+            dist/cn-litigation-workflows.zip.sha256
+          if-no-files-found: error

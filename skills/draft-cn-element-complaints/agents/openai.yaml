@@ -1,0 +1,6 @@
+interface:
+  display_name: "中国要素式起诉状"
+  short_description: "按现行官方母版制作、定点修改并验收中国要素式起诉状"
+  default_prompt: "使用 $draft-cn-element-complaints 按现行官方母版、字段闭合和表格验收门禁处理这份要素式起诉状。"
+policy:
+  allow_implicit_invocation: true
