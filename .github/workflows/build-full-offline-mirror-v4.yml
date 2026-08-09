@@ -1,0 +1,122 @@
+name: Build Full Offline Mirror V4
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-v4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Prepare
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/v4"
+
+      - name: Clone canonical repository or verified mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/v4"
+          CANONICAL="https://github.com/EvoLinkAI/awesome-gpt-image-2-API-and-Prompts.git"
+          MIRROR="https://github.com/mageia/awesome-gpt-image-2-API-and-Prompts.git"
+          PINNED_MIRROR_COMMIT="09edfcc2bcf6c7e3bbcedf7136abac136e3fd84e"
+
+          if git clone "$CANONICAL" repo; then
+            echo "SOURCE_REPOSITORY=EvoLinkAI/awesome-gpt-image-2-API-and-Prompts" >> "$GITHUB_ENV"
+            echo "SOURCE_MODE=canonical-main" >> "$GITHUB_ENV"
+          else
+            rm -rf repo
+            git clone "$MIRROR" repo
+            cd repo
+            git checkout "$PINNED_MIRROR_COMMIT"
+            cd ..
+            echo "SOURCE_REPOSITORY=mageia/awesome-gpt-image-2-API-and-Prompts" >> "$GITHUB_ENV"
+            echo "SOURCE_MODE=verified-mirror-pinned" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify repository structure and image assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/v4/repo"
+          required=(
+            "LICENSE"
+            "cases/ecommerce.md"
+            "cases/ad-creative.md"
+            "cases/portrait.md"
+            "cases/poster.md"
+            "cases/character.md"
+            "cases/ui.md"
+            "cases/comparison.md"
+            "images"
+          )
+          for item in "${required[@]}"; do
+            test -e "$ROOT/$item" || { echo "MISSING: $item" >&2; exit 10; }
+          done
+
+          IMAGE_COUNT=$(find "$ROOT/images" -type f | wc -l | tr -d ' ')
+          TOTAL_FILES=$(find "$ROOT" -type f | wc -l | tr -d ' ')
+          IMAGE_BYTES=$(du -sb "$ROOT/images" | awk '{print $1}')
+          test "$IMAGE_COUNT" -gt 0 || { echo "No image assets found" >&2; exit 11; }
+          test "$IMAGE_BYTES" -gt 1000000 || { echo "Image assets unexpectedly small" >&2; exit 12; }
+
+          cd "$ROOT"
+          SOURCE_COMMIT=$(git rev-parse HEAD)
+          git fsck --no-progress
+
+          {
+            echo "FULL OFFLINE MIRROR V4 VERIFICATION"
+            echo "status=PASSED"
+            echo "source_repository=${SOURCE_REPOSITORY}"
+            echo "source_mode=${SOURCE_MODE}"
+            echo "source_commit=${SOURCE_COMMIT}"
+            echo "image_file_count=${IMAGE_COUNT}"
+            echo "image_bytes=${IMAGE_BYTES}"
+            echo "total_file_count=${TOTAL_FILES}"
+            echo "verified_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } | tee "$RUNNER_TEMP/v4/VERIFICATION.txt"
+
+      - name: Build offline mirror package
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="$RUNNER_TEMP/v4"
+          ROOT="$BASE/repo"
+          OUT="$BASE/out"
+          mkdir -p "$OUT/source"
+
+          rsync -a --exclude='.git' "$ROOT/" "$OUT/source/"
+          cp "$BASE/VERIFICATION.txt" "$OUT/VERIFICATION.txt"
+
+          cd "$ROOT"
+          git bundle create "$OUT/repository.bundle" --all
+          git rev-parse HEAD > "$OUT/SOURCE_COMMIT.txt"
+          git remote -v > "$OUT/GIT_REMOTES.txt"
+
+          cd "$OUT"
+          find source -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS-SOURCE.txt
+          sha256sum repository.bundle VERIFICATION.txt SOURCE_COMMIT.txt GIT_REMOTES.txt > SHA256SUMS-META.txt
+
+          cd "$BASE"
+          zip -q -r "Full-Offline-Mirror-V4.zip" out
+          sha256sum "Full-Offline-Mirror-V4.zip" > "Full-Offline-Mirror-V4.zip.sha256"
+          ls -lh "Full-Offline-Mirror-V4.zip"
+          cat "Full-Offline-Mirror-V4.zip.sha256"
+
+      - name: Upload V4 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Full-Offline-Mirror-V4
+          path: |
+            ${{ runner.temp }}/v4/Full-Offline-Mirror-V4.zip
+            ${{ runner.temp }}/v4/Full-Offline-Mirror-V4.zip.sha256
+            ${{ runner.temp }}/v4/VERIFICATION.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
