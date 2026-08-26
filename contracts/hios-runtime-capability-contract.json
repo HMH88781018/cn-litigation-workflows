@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "cn-litigation-workflows-hios-runtime",
+  "contract_version": "1.0.0",
+  "public_repository": "HMH88781018/cn-litigation-workflows",
+  "public_plugin_version": "0.1.1",
+  "private_runtime_repository": "HMH88781018/hios-cloud-runtime-v1",
+  "minimum_runtime_source_candidate": "1.0.0-alpha.3-hardened",
+  "purpose": "Prevent silent semantic drift between the published litigation Skills and private HIOS routing/orchestration metadata.",
+  "authority": {
+    "published_skill_behavior": "The public repository is authoritative for the behavior, gates, references, tests and release boundary of its two published Skills.",
+    "private_orchestration": "The private Runtime is authoritative only for private domain registration, project isolation, routing metadata, runtime state, versions and audit.",
+    "matter_specific_truth": "Current applicable law, official court templates/rules, original matter evidence and the user's current explicit instructions take precedence over both repositories for a real matter.",
+    "no_silent_override": true,
+    "no_automatic_cross_domain_state_join": true
+  },
+  "mappings": [
+    {
+      "public_skill": "draft-cn-element-complaints",
+      "public_path": "skills/draft-cn-element-complaints/SKILL.md",
+      "hios_domain": "hios-legal-filing",
+      "hios_capabilities": [
+        "filing-dispatcher",
+        "case-material-ingest",
+        "case-element-extractor",
+        "cause-action-matcher",
+        "claim-calculation-consistency",
+        "element-complaint-drafter",
+        "filing-final-review"
+      ],
+      "mapping_semantics": "The HIOS names are routing/orchestration capabilities. They do not replace or silently rewrite the published Skill contract."
+    },
+    {
+      "public_skill": "prepare-cn-evidence-damages",
+      "public_path": "skills/prepare-cn-evidence-damages/SKILL.md",
+      "hios_domain": "hios-legal-filing",
+      "hios_capabilities": [
+        "evidence-gap-conflict-review",
+        "evidence-index-book-builder",
+        "evidence-list-builder",
+        "fact-evidence-matrix",
+        "claim-calculation-consistency",
+        "filing-final-review"
+      ],
+      "mapping_semantics": "The public Skill remains the published source of truth for its evidence/damages workflow; HIOS consumes its locked values and routes related private work."
+    }
+  ],
+  "privacy": {
+    "real_client_or_matter_data_in_public_repository": false,
+    "real_client_or_matter_data_in_contract": false,
+    "contract_contains_only_capability_metadata": true
+  },
+  "change_control": {
+    "public_skill_behavior_change_requires_public_tests": true,
+    "contract_change_requires_public_tests": true,
+    "private_mapping_change_requires_private_runtime_tests": true,
+    "legal_rule_changes_must_not_auto_merge": true,
+    "version_mismatch_requires_review": true
+  }
+}
